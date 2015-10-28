@@ -25,7 +25,7 @@
       return;
     }
 
-    target.load('{% url "debug-userpanel" %}?next=' + escape(location.href));
+    target.load('{% url "djdt:debug-userpanel" %}?next=' + escape(location.href));
   });
 });
 </script>

@@ -64,6 +64,12 @@ from django.utils.translation import ugettext_lazy as _
 
 from debug_toolbar.panels import DebugPanel
 
+try:
+    from django.conf.urls import patterns, url
+except ImportError:
+    from django.conf.urls.defaults import patterns, url
+
+
 class UserPanel(DebugPanel):
     """
     Panel that allows you to login as other recently-logged in users.
@@ -84,13 +90,37 @@ class UserPanel(DebugPanel):
     def nav_subtitle(self):
         return self.request.user.is_authenticated() and self.request.user
 
-    def content(self):
-        context = self.context.copy()
-        context.update({
-            'request': self.request,
+    def process_response(self, request, response):
+        from django.contrib.auth.models import User
+        from .forms import UserForm
+
+        self.request = request
+
+        current = []
+
+        if request.user.is_authenticated():
+            for field in User._meta.fields:
+                if field.name == 'password':
+                    continue
+                current.append(
+                    (field.attname, getattr(request.user, field.attname))
+                )
+
+        self.record_stats({
+            'form': UserForm(),
+            'next': request.GET.get('next'),
+            'users': User.objects.order_by('-last_login')[:10],
+            'current': current,
         })
 
-        return render_to_string('debug_toolbar_user_panel/panel.html', context)
+    template = 'debug_toolbar_user_panel/content.html'
 
-    def process_response(self, request, response):
-        self.request = request
+    @classmethod
+    def get_urls(cls):
+        return patterns('debug_toolbar_user_panel.views',
+            url(r'/users/$', 'content', name='debug-userpanel'),
+            url(r'/users/login/$', 'login_form', name='debug-userpanel-login-form'),
+            url(r'/users/login/(?P<pk>-?\d+)$', 'login', name='debug-userpanel-login'),
+            url(r'/users/logout$', 'logout', name='debug-userpanel-logout'),
+        )
+

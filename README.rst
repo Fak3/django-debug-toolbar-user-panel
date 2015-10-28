@@ -1,7 +1,4 @@
-django-debug-toolbar-user-panel
-===============================
+django-debug-toolbar-user-panel-old
+===================================
 
-Documentation: http://code.playfire.com/django-debug-toolbar-user-panel/
-
-.. figure::  http://code.playfire.com/django-debug-toolbar-user-panel/_images/screenshot.png
-   :align:   center
+This is a fork of original debug-toolbar-user-panel, made compatible with older django-debug-toolbar==1.0.1
